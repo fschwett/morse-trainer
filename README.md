@@ -11,3 +11,7 @@ I wanted to have a website that gives me full controll over which characters, wh
 * **Continous** just keeps playing Morse code at the speed and pitch you chose.
 * **Block** is the same, except it always plays five characters and then waits for a specified amount of time before revealing the code.
 * **Test** plays a block of five characters. The code has to be typed into a input and is then checked.
+
+## Preview:
+
+The project can be viewed at [html-preview.github.io](https://html-preview.github.io/?url=https://github.com/fschwett/morse-trainer/blob/main/index.html).
