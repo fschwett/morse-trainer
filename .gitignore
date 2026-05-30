@@ -1,0 +1,7 @@
+*
+!.gitignore
+!index.html
+!koch-block.html
+!koch-cont.html
+!koch-test.html
+!audio_output/*

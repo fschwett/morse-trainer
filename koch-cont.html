@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Koch (dauer) - Morse</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <link rel="icon" type="image/png" href="./favicon.png">
+    </head>
+    <body class="mx-5 mt-5 d-flex flex-column">
+        <h1>Koch (dauer)</h1>
+
+        <div class="input-group mb-3 mt-3 d-flex flex-column">
+            <span class="form-label">Alphabet:</span>
+            <div class="d-flex flex-row flex-wrap alphabet-container"></div>
+        </div>
+
+        <div class="input-group mb-3">
+            <input type="number" class="form-control" id="frequency-input" value="440" placeholder="Frequenz" aria-label="Frequenz (Hz)">
+            <span class="input-group-text">Hz</span>
+            <input type="number" class="form-control" id="dit-duration-input" value="100" placeholder="Dit Dauer" aria-label="Dit Dauer (ms)">
+            <span class="input-group-text">ms</span>
+            <button type="button" class="btn btn-success" id="ss-button" onclick="ssButtonClick();">start</button>
+        </div>
+
+        <div class="form-check">
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" role="switch" id="play-morse-checkbox" onclick="playMorse = !playMorse;" checked>
+                <label class="form-check-label text-body" for="play-morse-checkbox">Ton abspielen</label>
+            </div>
+    
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" role="switch" id="show-signal-checkbox" onclick="showSignal = !showSignal;" switch>
+                <label class="form-check-label text-body" for="show-signal-checkbox">Signal grafisch anzeigen</label>
+            </div>
+    
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" role="switch" id="show-code-checkbox" onclick="showCode = !showCode;" switch>
+                <label class="form-check-label text-body" for="show-code-checkbox">Morsecode anzeigen</label>
+            </div>
+        </div>
+
+        <div class="input-group mb-3 p-3 d-none" id="code-out">
+            <h3></h3>
+        </div>
+
+        <div class="input-group mb-3 p-3 d-none" id="text-out">
+            <p class="font-monospace"></p>
+        </div>
+
+        <div class="input-group mb-3 p-3" id="visual-out">
+            <div class="rounded shadow d-none"><h3 class="d-none"></h3></div>
+        </div>
+
+        <style>
+
+            .input-group {
+                max-width: 400px;
+            }
+
+            .checkbox-container {
+                display: flex;
+                justify-content: center;
+                width: 30px;
+            }
+
+            .checkbox-container > label {
+                width: 20px;
+                text-align: center;
+            }
+
+            .form-check-label {
+                user-select: none;
+                color: var(--bs-gray-400);
+            }
+
+            input[type="checkbox"]:checked + .form-check-label {
+                color: var(--bs-gray-800);
+            }
+
+            #ss-button {
+                width: 80px;
+            }
+
+            #code-out h3 {
+                text-align: center;
+                margin: 0;
+            }
+
+            #text-out {
+                background-color: var(--bs-gray-200);
+            }
+
+            #text-out > p {
+                white-space: break-spaces;
+                margin-bottom: 0;
+                font-size: 18px;
+                min-height: 27px;
+            }
+
+            #visual-out {
+                display: flex;
+                justify-content: center;
+            }
+
+            #visual-out > div {
+                background-color: var(--bs-gray-300);
+                width: 16%;
+                height: 32px;
+            }
+
+            #visual-out > div.act {
+                background-color: #69b190;
+            }
+
+            #visual-out h3 {
+                text-align: center;
+            }
+
+        </style>
+
+        <script>
+
+            let run = false;
+            
+            let playMorse = true;
+            let showSignal = false;
+            let showCode = false;
+
+            let oscillator;
+            let audioContext;
+            let gainNode;
+            let freq = 440;
+            let audioContextResetCounter = 0;
+
+            let timeoutID;
+            let alphabet = new Array();
+            let charNumber = 0;
+            let currentChar = "";
+            let currentCharCode;
+            let positionInChar;
+            let out = "";
+
+            const morse = new Map([
+
+                ["a", ". - "],
+                ["b", "- . . . "],
+                ["c", "- . - . "],
+                ["d", "- . . "],
+                ["e", ". "],
+                ["f", ". . - . "],
+                ["g", "- - . "],
+                ["h", ". . . . "],
+                ["i", ". . "],
+                ["j", ". - - - "],
+                ["k", "- . - "],
+                ["l", ". - . . "],
+                ["m", "- - "],
+                ["n", "- . "],
+                ["o", "- - - "],
+                ["p", ". - - . "],
+                ["q", "- - . - "],
+                ["r", ". - . "],
+                ["s", ". . . "],
+                ["t", "- "],
+                ["u", ". . - "],
+                ["v", ". . . - "],
+                ["w", ". - - "],
+                ["x", "- . . - "],
+                ["y", "- . - - "],
+                ["z", "- - . . "],
+                ["1", ". - - - - "],
+                ["2", ". . - - - "],
+                ["3", ". . . - - "],
+                ["4", ". . . . - "],
+                ["5", ". . . . . "],
+                ["6", "- . . . . "],
+                ["7", "- - . . . "],
+                ["8", "- - - . . "],
+                ["9", "- - - - . "],
+                ["0", "- - - - - "]
+
+            ]);
+            
+            let ditTime;
+            let dahTime;
+            let interCharTime;
+
+            let ssButtonClick = () => {
+
+                if (run) {
+
+                    run = false;
+                    clearTimeout(timeoutID);
+                    stopSound();
+                    document.querySelector("#ss-button").classList.add("btn-success");
+                    document.querySelector("#ss-button").classList.remove("btn-danger");
+                    document.querySelector("#ss-button").innerText = "start";
+                    document.querySelector("#visual-out > div").classList.add("d-none");
+                    document.querySelector("#code-out").classList.add("d-none");
+                    return;
+
+                }
+
+                if (alphabet.length < 1) return;
+                
+                document.querySelector("#ss-button").classList.remove("btn-success");
+                document.querySelector("#ss-button").classList.add("btn-danger");
+                document.querySelector("#ss-button").innerText = "stop";
+                document.querySelector("#visual-out > div").classList.remove("act");
+                document.querySelector("#visual-out > div").classList.remove("d-none");
+                document.querySelector("#text-out").classList.remove("d-none");
+
+                out = "";
+                document.querySelector("#text-out p").innerText = out;
+
+                currentChar = "";
+                charNumber = 0;
+
+                run = true;
+                
+                getNextChar();
+                
+                timeoutHandler();
+
+            };
+
+
+
+
+            let timeoutHandler = () => {
+
+                let newTimeout;
+                
+                if (showCode) document.querySelector("#code-out").classList.remove("d-none");
+                else document.querySelector("#code-out").classList.add("d-none");
+
+                if (showSignal) document.querySelector("#visual-out").classList.remove("d-none");
+                else document.querySelector("#visual-out").classList.add("d-none");
+                
+                if (currentCharCode[positionInChar] == ".") {
+
+                    // document.querySelector("#visual-out h3").innerText = "·";
+                    newTimeout = ditTime;
+                    startSound();
+
+                }
+
+                if (currentCharCode[positionInChar] == "-") {
+                    
+                    // document.querySelector("#outchar").innerText = "—";
+                    document.querySelector("#visual-out h3").innerText = "−";
+                    newTimeout = dahTime;
+                    startSound();
+
+                }
+
+                if (currentCharCode[positionInChar] == " ") {
+                    
+                    document.querySelector("#visual-out h3").innerText = "";
+                    newTimeout = ditTime;
+                    stopSound();
+
+                }
+
+                positionInChar++;
+
+                if (positionInChar == currentCharCode.length) {
+
+                    newTimeout = interCharTime;
+                    getNextChar();
+
+                }
+                
+                if (run) {
+
+                    timeoutID = setTimeout(timeoutHandler, newTimeout);
+
+                    console.log(timeoutCounter);
+
+                }
+
+            }
+
+
+
+
+            let getNextChar = () => {
+
+                if (alphabet.length < 1) return;
+
+                if (out.length > 107) out = currentChar;
+                else out += currentChar
+                
+                document.querySelector("#text-out p").innerText = out;
+
+                if (currentChar == " " || currentChar == "") charNumber = 0;
+                else charNumber++;
+
+                positionInChar = 0;
+
+                if (charNumber == 5) {
+
+                    currentChar = " ";
+                    currentCharCode = "    ";
+
+                    console.log(currentCharCode);
+                    
+                    return;
+                }
+
+                currentChar = alphabet[Math.floor(Math.random() * alphabet.length)];
+                currentCharCode = morse.get(currentChar);
+                document.querySelector("#code-out h3").innerText = currentCharCode.replaceAll(".", "·").replaceAll("-", "−");
+
+                console.log(currentCharCode);
+                
+            }
+
+
+
+
+            let startSound = () => {
+
+                document.querySelector("#visual-out > div").classList.add("act");
+
+                if (audioContextResetCounter > 50) {
+
+                    //audioContext.close();
+                    // audioContext = new AudioContext();
+                    audioContextResetCounter = 0;
+
+                } else audioContextResetCounter++;
+
+                oscillator = audioContext.createOscillator();
+                gainNode = audioContext.createGain();
+                
+                oscillator.frequency.value = freq;
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination)
+                gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0);
+                if (playMorse) oscillator.start();
+                gainNode.gain.setTargetAtTime(1, audioContext.currentTime, 0.002);
+
+            }
+
+
+
+
+            let stopSound = () => {
+                
+                document.querySelector("#visual-out > div").classList.remove("act");
+                
+                gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.003);
+
+            }
+
+
+
+
+            let updateAlphabet = (c) => {
+
+                if (document.querySelector("#check-" + c).checked) alphabet.push(c);
+                else {
+
+                    const index = alphabet.indexOf(c);
+                    if (index > -1) alphabet.splice(index, 1);
+
+                }
+
+                setSSButtonState();
+
+            }
+
+
+
+
+            let ditDurationChanged = (e) => {
+
+                setSSButtonState();
+
+                if (document.querySelector("#dit-duration-input").value > 0) {
+
+                    ditTime = Number(document.querySelector("#dit-duration-input").value);
+                    dahTime = Number(document.querySelector("#dit-duration-input").value) * 3;
+                    interCharTime = Number(document.querySelector("#dit-duration-input").value) * 2;
+
+                } else {
+
+                    e.preventDefault();
+
+                }
+
+            };
+
+
+
+
+            let freqChanged = () => {
+
+                setSSButtonState();
+
+                if (document.querySelector("#frequency-input").value > 0 && document.querySelector("#frequency-input").value < 24000) {
+
+                    freq = document.querySelector("#frequency-input").value;
+
+                } else {
+
+                    e.preventDefault();
+
+                }
+
+            }
+
+
+
+
+            let setSSButtonState = () => {
+
+                if (document.querySelector("#frequency-input").value > 0 &&
+                    document.querySelector("#frequency-input").value < 24000 &&
+                    document.querySelector("#dit-duration-input").value > 0 &&
+                    alphabet.length > 0) {
+                        
+                    document.querySelector("#ss-button").removeAttribute("disabled");
+
+                } else {
+
+                    document.querySelector("#ss-button").setAttribute("disabled", "");
+                    if (run) ssButtonClick();
+
+                }
+
+            }
+
+
+
+
+            let init = () => {
+
+                let alphabet = "abcdefghijklmnopqrstuvwxyz1234567890";
+
+                for (let i = 0; i < alphabet.length; i++) {
+
+                    let checkContainer = document.createElement("div");
+                    checkContainer.classList.add("checkbox-container");
+                    checkContainer.setAttribute("data-char", alphabet[i]);
+                    document.querySelector(".alphabet-container").appendChild(checkContainer);
+
+                    
+                    let input = document.createElement("input");
+                    input.classList.add("form-check-input");
+                    input.classList.add("d-none");
+                    input.setAttribute("type", "checkbox");
+                    input.setAttribute("id", "check-" + alphabet[i]);
+                    input.setAttribute("onchange", "updateAlphabet(\"" + alphabet[i] + "\");");
+
+                    let label = document.createElement("label");
+                    label.classList.add("form-check-label");
+                    label.classList.add("fs-5");
+                    label.setAttribute("for", "check-" + alphabet[i]);
+                    label.innerText = alphabet[i];
+                    
+                    checkContainer.appendChild(input);
+                    checkContainer.appendChild(label);
+                }
+                
+                document.querySelector("#dit-duration-input").addEventListener("input", ditDurationChanged);
+                document.querySelector("#frequency-input").addEventListener("input", freqChanged);
+
+                ditDurationChanged();
+                
+                audioContext = new AudioContext();
+
+            }
+
+            init();
+
+        </script>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
+    </body>
+</html>
