@@ -26,7 +26,7 @@
             <span class="input-group-text">Hz</span>
             <input type="number" class="form-control" id="dit-duration-input" value="100" placeholder="Dit Dauer" aria-label="Dit Dauer (ms)">
             <span class="input-group-text">ms</span>
-            <button type="button" class="btn btn-success" id="ss-button" onclick="ssButtonClick();">start</button>
+            <button type="button" class="btn btn-success" id="run-button" onclick="runButtonClick();">start</button>
         </div>
 
         <div class="form-check">
@@ -94,7 +94,7 @@
                 color: var(--bs-gray-800);
             }
 
-            #ss-button {
+            #run-button {
                 width: 80px;
             }
 
@@ -249,7 +249,7 @@
 
 
 
-            let ssButtonClick = () => {
+            let runButtonClick = () => {
 
                 blockCheckAnswer = false;
 
@@ -258,9 +258,9 @@
                     run = false;
                     clearTimeout(timeoutID);
                     stopSound();
-                    document.querySelector("#ss-button").classList.add("btn-success");
-                    document.querySelector("#ss-button").classList.remove("btn-danger");
-                    document.querySelector("#ss-button").innerText = "start";
+                    document.querySelector("#run-button").classList.add("btn-success");
+                    document.querySelector("#run-button").classList.remove("btn-danger");
+                    document.querySelector("#run-button").innerText = "start";
                     document.querySelector("#visual-out > div").classList.add("d-none");
                     document.querySelector("#code-out").classList.add("d-none");
                     document.querySelector("#text-out").classList.add("d-none");
@@ -272,9 +272,9 @@
 
                 if (alphabet.length < 1) return;
                 
-                document.querySelector("#ss-button").classList.remove("btn-success");
-                document.querySelector("#ss-button").classList.add("btn-danger");
-                document.querySelector("#ss-button").innerText = "stop";
+                document.querySelector("#run-button").classList.remove("btn-success");
+                document.querySelector("#run-button").classList.add("btn-danger");
+                document.querySelector("#run-button").innerText = "stop";
                 document.querySelector("#visual-out > div").classList.remove("act");
                 document.querySelector("#answer-relay-container").classList.remove("d-none");
 
@@ -493,7 +493,6 @@
 
                     if (document.querySelector("#answer-input") == document.activeElement) {
                         document.querySelector("#answer-relay").innerHTML = "";
-                        document.querySelector("h1").style.color = "red";
                     } else
                         document.querySelector('#answer-relay').innerHTML = '<span class="answer-letter" style="color: var(--bs-gray-500);">Lösung</span>';
                     
@@ -584,7 +583,7 @@
 
                 }
 
-                setSSButtonState();
+                setRunButtonState();
 
             }
 
@@ -593,7 +592,7 @@
 
             let ditDurationChanged = (e) => {
 
-                setSSButtonState();
+                setRunButtonState();
 
                 if (document.querySelector("#dit-duration-input").value > 0) {
 
@@ -614,7 +613,7 @@
 
             let freqChanged = () => {
 
-                setSSButtonState();
+                setRunButtonState();
 
                 if (document.querySelector("#frequency-input").value > 0 && document.querySelector("#frequency-input").value < 24000) {
 
@@ -655,7 +654,7 @@
 
 
 
-            let setSSButtonState = () => {
+            let setRunButtonState = () => {
 
                 if (document.querySelector("#frequency-input").value > 0 &&
                     document.querySelector("#frequency-input").value < 24000 &&
@@ -663,12 +662,12 @@
                     document.querySelector("#next-timer-input").value > 0 &&
                     alphabet.length > 0) {
                         
-                    document.querySelector("#ss-button").removeAttribute("disabled");
+                    document.querySelector("#run-button").removeAttribute("disabled");
 
                 } else {
 
-                    document.querySelector("#ss-button").setAttribute("disabled", "");
-                    if (run) ssButtonClick();
+                    document.querySelector("#run-button").setAttribute("disabled", "");
+                    if (run) runButtonClick();
 
                 }
 
@@ -803,7 +802,7 @@
                 document.querySelector("#answer-input").addEventListener("focusout", answerInputFocusout);
                 document.querySelector("#answer-input").addEventListener("input", answerInputHandler);
                 document.querySelector("#answer-input").addEventListener("keydown", answerInputKeydown);
-                document.querySelector("#next-timer-input").addEventListener("input", setSSButtonState);
+                document.querySelector("#next-timer-input").addEventListener("input", setRunButtonState);
 
                 ditDurationChanged();
                 
