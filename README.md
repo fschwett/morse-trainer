@@ -61,9 +61,26 @@ There are essentially two ways to get rid of the click:
 * gradually decrease gain
 * stop exactly at a zero point crossing
 
+The following graphic shows what the abrupt stop, fading out and the stop at a zero point crossing look like:
+
 <img width="415" height="196" alt="waves-transparent" src="https://github.com/user-attachments/assets/99df00af-96bb-450a-baf2-92c9bcdc2cb2" />
 
+The easiest way to implement a click free sine wave was by in and decreasing the gain. This is done by using the gain nodes `gain.setTargetAtTime()` method. It sets the gain to a certain value starting at a specified time and transitioning over a specified amount of time. To start the sound, the oscillator is started with a gain of 0. The gain then transitions to 1 over the course of 0.002 seconds which I found was the optimal time to avoid clicking and still give a clear start.
 
+```js
+gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0);
+
+if (playMorse) oscillator.start();
+
+gainNode.gain.setTargetAtTime(1, audioContext.currentTime, 0.002);
+```
+
+Same goes for stopping the oscillator. The gain is reduced to 0 over the course of 0.003 seconds and additionally a timeout is set which stops the oscillator after 0,01 seconds
+
+```js
+gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.003);
+setTimeout(() => { oscillator.close(); }, 10);
+```
 
 ## Preview:
 
