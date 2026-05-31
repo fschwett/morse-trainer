@@ -56,8 +56,7 @@ The run status is handled by the `runButtonClick()` function. It checks the curr
 
 The Morse signal is created using the Web Audio API's `AudioContext`. I implemented the methods `startSound()` and `stopSound()`. They use an oscillator and a gain node to produce a sound. The oscillator produces a sine wave with a specific gain. If the oscillator is stopped abruptly, a clicking sound can occur because the audio signal is cut off at an arbitrary point in its waveform. This instantaneous discontinuity introduces a wide range of high-frequency components, which are perceived as a click. This is not a computer error or a limitation of the Web Audio API; it is a natural consequence of how the human auditory system processes sudden changes in sound.
 
-<img width="277" height="215" alt="image" src="https://github.com/user-attachments/assets/eeb846dd-9635-461d-95af-7de3cb13161f" />
-
+<img width="415" height="196" alt="image" src="https://github.com/user-attachments/assets/3ec42b97-3f1c-4bea-b985-dfebcf9505bc" />
 
 
 
