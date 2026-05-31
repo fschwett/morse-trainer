@@ -61,7 +61,7 @@ There are essentially two ways to get rid of the click:
 * gradually decrease gain
 * stop exactly at a zero point crossing
 
-<img width="415" height="196" alt="image" src="https://github.com/user-attachments/assets/3ec42b97-3f1c-4bea-b985-dfebcf9505bc" />
+<img width="415" height="196" alt="waves-transparent" src="https://github.com/user-attachments/assets/99df00af-96bb-450a-baf2-92c9bcdc2cb2" />
 
 
 
