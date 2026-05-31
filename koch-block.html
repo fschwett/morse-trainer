@@ -386,11 +386,7 @@
 
                 }
                 
-                if (run) {
-
-                    timeoutID = setTimeout(timeoutHandler, newTimeout);
-
-                }
+                if (run) timeoutID = setTimeout(timeoutHandler, newTimeout);
 
             }
 
@@ -434,14 +430,14 @@
 
                 document.querySelector("#visual-out > div").classList.add("act");
 
-                if (audioContextResetCounter > 50) {
+                /*if (audioContextResetCounter > 50) {
 
                     //audioContext.close();
                     // audioContext = new AudioContext();
                     audioContextResetCounter = 0;
                     // document.querySelector("h1").style.color = "#f00";
 
-                } else audioContextResetCounter++;
+                } else audioContextResetCounter++;*/
 
                 oscillator = audioContext.createOscillator();
                 gainNode = audioContext.createGain();
@@ -463,6 +459,7 @@
                 document.querySelector("#visual-out > div").classList.remove("act");
                 
                 gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.003);
+                setTimeout(() => { oscillator.close(); }, 10);
 
             }
 
