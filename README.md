@@ -20,7 +20,7 @@ Morse code timing is a precisely defined ratio build upon the duration of the sh
 
 ## Implementation:
 
-The website is built with HTML/CSS and JS. It uses the bootstrap framework for styling. The application is built on the idea of portability and low maintenance. That's why I used simple HTML/CSS instead of processed solutions like SCSS, EJS or anything similar. Also I use embedded CSS and inline JS instead of external files for the same reason, even though it's not as clean as external files. This way one file works as a standalone application and can be used on any device and provided by any server, even the [github html preview](https://github.com/fschwett/morse-trainer#preview).
+The website is built with HTML/CSS and JS. It uses the bootstrap framework for styling. The application is built on the idea of portability and low maintenance. That's why I used simple HTML/CSS instead of processed solutions like SCSS, EJS or anything similar. Also I use embedded CSS and inline JS instead of external files for the same reason, even though it's not as clean as external files. This way one file works as a standalone application and can be used on any device and provided by any server, even the [github html preview](https://github.com/fschwett/morse-trainer#preview). The only exception is a collection of MP3 files for the block features audio output.
 
 The application is build around the `setTimeout()` function, that is called on each signal flank. It's callback (`handleTimeout`) essentially creates a self sustaining loop and that handles the Morse signal and creation of new blocks as well as the logic after each block (depending on the mode).
 
@@ -36,7 +36,7 @@ for (let i = 0; i < fullAlphabet.length; i++) {
 }
 ```
 
-### Variables:
+### Important variables:
 
 After that, the function adds event handlers to all the GUI elements like the pitch input, the dit duration input etc and initializes the AudioContext for the app.
 
@@ -50,7 +50,7 @@ The run status is handled by the `runButtonClick()` function. It checks the curr
 
 `timeoutHandler()` checks some settings and manipulates the document accordingly first. Then it determines the duration of the next timeout and decides whether to start or stop the sound. Therefore it uses the 
 
-
+.........................
 
 ### Sound handling:
 
@@ -65,7 +65,7 @@ The following graphic shows what the abrupt stop, fading out and the stop at a z
 
 <img width="415" height="196" alt="waves-transparent" src="https://github.com/user-attachments/assets/99df00af-96bb-450a-baf2-92c9bcdc2cb2" />
 
-The easiest way to implement a click free sine wave was by in and decreasing the gain. This is done by using the gain nodes `gain.setTargetAtTime()` method. It sets the gain to a certain value starting at a specified time and transitioning over a specified amount of time. To start the sound, the oscillator is started with a gain of 0. The gain then transitions to 1 over the course of 0.002 seconds which I found was the optimal time to avoid clicking and still give a clear start.
+The easiest way to implement a click free sine wave was by increasing and decreasing the gain. This is done by using the gain nodes `gain.setTargetAtTime()` method. It sets the gain to a certain value starting at a specified time and transitioning over a specified amount of time. To start the sound, the oscillator is started with a gain of 0. The gain then transitions to 1 over the course of 0.002 seconds which I found was the optimal time to avoid clicking and still give a clear start.
 
 ```js
 gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0);
@@ -79,8 +79,18 @@ Same goes for stopping the oscillator. The gain is reduced to 0 over the course 
 
 ```js
 gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.003);
-setTimeout(() => { oscillator.close(); }, 10);
+setTimeout(() => { oscillator.stop(); }, 10);
 ```
+
+## Text to speach feature
+
+The block mode has a feature that lets you hear the correct solution red out. This way the mode can be used auditorily without looking at the screen. The Web Speech API's `SpeechSynthesis` interface could've been used but it didn't work the way I wanted it. When increasing speed, characters started to overlap. That's why I chose to use mp3 files
+
+> [!NOTE]
+> Convert MP3 files to base64 and hardcode audios map
+
+> [!IMPORTANT]
+> User interaction might be needed to allow audios to be played 
 
 ## Preview:
 
