@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="light">
+<html lang="de" data-bs-theme="dark">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -50,10 +50,6 @@
             <h3></h3>
         </div>
 
-        <div class="input-group mb-3 p-3 d-none" id="text-out">
-            <p class="font-monospace"></p>
-        </div>
-
         <div class="input-group mb-3 p-3" id="visual-out">
             <div class="rounded shadow d-none"><h3 class="d-none"></h3></div>
         </div>
@@ -85,13 +81,22 @@
                 text-align: center;
             }
 
-            .form-check-label {
+            [data-bs-theme=light] .form-check-label {
                 user-select: none;
                 color: var(--bs-gray-500);
             }
 
-            input[type="checkbox"]:checked + .form-check-label {
+            [data-bs-theme=light] input[type="checkbox"]:checked + .form-check-label {
                 color: var(--bs-gray-800);
+            }
+
+            [data-bs-theme=dark] .form-check-label {
+                user-select: none;
+                color: var(--bs-gray-800);
+            }
+
+            [data-bs-theme=dark] input[type="checkbox"]:checked + .form-check-label {
+                color: var(--bs-gray-500);
             }
 
             #run-button {
@@ -103,26 +108,19 @@
                 margin: 0;
             }
 
-            #text-out {
-                background-color: var(--bs-gray-200);
-            }
-
-            #text-out > p {
-                white-space: break-spaces;
-                margin-bottom: 0;
-                font-size: 18px;
-                min-height: 27px;
-                text-align: center;
-                width: 100%;
-            }
-
             #visual-out {
                 display: flex;
                 justify-content: center;
             }
-
-            #visual-out > div {
+            
+            [data-bs-theme=light] #visual-out > div {
                 background-color: var(--bs-gray-300);
+                width: 16%;
+                height: 32px;
+            }
+
+            [data-bs-theme=dark] #visual-out > div {
+                background-color: var(--bs-gray-900);
                 width: 16%;
                 height: 32px;
             }
@@ -263,7 +261,6 @@
                     document.querySelector("#run-button").innerText = "start";
                     document.querySelector("#visual-out > div").classList.add("d-none");
                     document.querySelector("#code-out").classList.add("d-none");
-                    document.querySelector("#text-out").classList.add("d-none");
                     document.querySelector("#answer-relay-container").classList.add("d-none");
                     document.querySelector("#timer-countdown span").innerText = "";
                     return;
@@ -276,13 +273,11 @@
                 document.querySelector("#run-button").classList.add("btn-danger");
                 document.querySelector("#run-button").innerText = "stop";
                 document.querySelector("#visual-out > div").classList.remove("act");
+                document.querySelector("#visual-out > div").classList.remove("d-none");
                 document.querySelector("#answer-relay-container").classList.remove("d-none");
 
-                if (showCode) document.querySelector("#code-out").classList.remove("d-none");
-                else document.querySelector("#code-out").classList.add("d-none");
-
-                if (showSignal) document.querySelector("#visual-out").classList.remove("d-none");
-                else document.querySelector("#visual-out").classList.add("d-none");
+                document.querySelector("#code-out").classList.add("d-none");
+                document.querySelector("#visual-out").classList.add("d-none");
 
                 document.querySelector("#answer-input").value = "";
                 answerInputValue = "";
@@ -293,62 +288,6 @@
                 countIn();
 
             };
-
-
-
-
-            let timerHandler = () => {
-
-                if (charNumber == 5) {
-
-                    //revelationTimer--;
-
-                    //document.querySelector("#timer-countdown span").innerText = "Auflösung in " + revelationTimer;
-                    document.querySelector("#visual-out").classList.add("d-none");
-
-                    /*if (revelationTimer == 0) {
-                        
-                        charNumber++;
-
-                        document.querySelector("#text-out p").innerText = out;
-                        document.querySelector("#text-out").classList.remove("d-none");
-
-                    }*/
-
-                }
-
-                if (charNumber == 6) {
-
-                    //nextTimer--;
-
-                    //document.querySelector("#timer-countdown span").innerText = "Weiter in " + nextTimer;
-
-                    /*if (revelationTimer == 0) {
-                        
-                        speak(out);
-                        
-                        revelationTimer++;
-
-                    }*/
-
-                    /*if (nextTimer == 0) {
-
-                        out = "";
-
-                        document.querySelector("#timer-countdown span").innerText = "";
-                        document.querySelector("#text-out").classList.add("d-none");
-                        if (showSignal) document.querySelector("#visual-out").classList.remove("d-none");
-                        getNextChar();
-                        timeoutHandler();
-                        return;
-
-                    }*/
-
-                }
-
-                // timeoutID = setTimeout(timerHandler, 1000);
-
-            }
 
 
 
@@ -402,10 +341,10 @@
 
                     if (charNumber == 5) {
                         
-                        /*Timer++;
-                        nextTimer++;*/
-                        timerHandler();
                         blockCheckAnswer = false;
+                        
+                        document.querySelector("#code-out").classList.add("d-none");
+                        document.querySelector("#visual-out").classList.add("d-none");
                         return;
 
                     }
@@ -482,7 +421,6 @@
                 if (nextTimer == 0) {
 
                     out = "";
-                    document.querySelector("#text-out p").innerText = out;
 
                     currentChar = "";
                     charNumber = 0;
@@ -497,8 +435,14 @@
                         document.querySelector('#answer-relay').innerHTML = '<span class="answer-letter" style="color: var(--bs-gray-500);">Lösung</span>';
                     
                     document.querySelector("#timer-countdown span").innerText = "";
-                    document.querySelector("#text-out").classList.add("d-none");
                     if (showSignal) document.querySelector("#visual-out").classList.remove("d-none");
+
+                    if (showCode) document.querySelector("#code-out").classList.remove("d-none");
+                    else document.querySelector("#code-out").classList.add("d-none");
+
+                    if (showSignal) document.querySelector("#visual-out").classList.remove("d-none");
+                    else document.querySelector("#visual-out").classList.add("d-none");
+
                     getNextChar();
                     timeoutHandler();
                     return;
@@ -567,6 +511,7 @@
                 document.querySelector("#visual-out > div").classList.remove("act");
                 
                 if (gainNode != undefined) gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.003);
+                setTimeout(() => { oscillator.stop(); }, 10);
 
             }
 

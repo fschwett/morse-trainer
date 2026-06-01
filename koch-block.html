@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="light">
+<html lang="de" data-bs-theme="dark">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -90,13 +90,22 @@
                 text-align: center;
             }
 
-            .form-check-label {
+            [data-bs-theme=light] .form-check-label {
                 user-select: none;
                 color: var(--bs-gray-500);
             }
 
-            input[type="checkbox"]:checked + .form-check-label {
+            [data-bs-theme=light] input[type="checkbox"]:checked + .form-check-label {
                 color: var(--bs-gray-800);
+            }
+
+            [data-bs-theme=dark] .form-check-label {
+                user-select: none;
+                color: var(--bs-gray-800);
+            }
+
+            [data-bs-theme=dark] input[type="checkbox"]:checked + .form-check-label {
+                color: var(--bs-gray-500);
             }
 
             #run-button {
@@ -108,8 +117,12 @@
                 margin: 0;
             }
 
-            #text-out {
+            [data-bs-theme=light] #text-out {
                 background-color: var(--bs-gray-200);
+            }
+
+            [data-bs-theme=dark] #text-out {
+                background-color: var(--bs-gray-800);
             }
 
             #text-out > p {
@@ -126,8 +139,14 @@
                 justify-content: center;
             }
 
-            #visual-out > div {
+            [data-bs-theme=light] #visual-out > div {
                 background-color: var(--bs-gray-300);
+                width: 16%;
+                height: 32px;
+            }
+
+            [data-bs-theme=dark] #visual-out > div {
+                background-color: var(--bs-gray-900);
                 width: 16%;
                 height: 32px;
             }
@@ -458,8 +477,8 @@
                 
                 document.querySelector("#visual-out > div").classList.remove("act");
                 
-                gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.003);
-                setTimeout(() => { oscillator.close(); }, 10);
+                if (gainNode != undefined) gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.003);
+                setTimeout(() => { oscillator.stop(); }, 10);
 
             }
 
@@ -539,8 +558,6 @@
 
                     }
                 }
-
-                
 
             }
 
