@@ -10,7 +10,7 @@ The Koch method is a widely used approach for learning Morse code. During practi
 
 I wanted to have a website that gives me full control over which characters, speeds, and other settings I practice with. I ended up implementing three different modes for different types of training, each with a number of settings to optimize the learning experience.
 
-* **Continous** just keeps playing five character blocks of Morse code at the speed and pitch you chose.
+* **Continuous** just keeps playing five character blocks of Morse code at the speed and pitch you chose.
 * **Block** is the same, except after each block it waits for a specified amount of time before revealing the correct characters.
 * **Test** plays a block of five characters. The user has to type the decoded characters into an input field. They are then checked so theres no need for paper.
 
@@ -20,7 +20,7 @@ Morse code timing is a precisely defined ratio build upon the duration of the sh
 
 ## Implementation:
 
-The website is built with HTML/CSS and JS. It uses the bootstrap framework for styling. The application is built on the idea of portability and low maintenance. That's why I used simple HTML/CSS instead of processed solutions like SCSS, EJS or anything similar. Also I use embedded CSS and inline JS instead of external files for the same reason, even though it's not as clean as external files. This way one file works as a standalone application and can be used on any device and provided by any server, even the [github html preview](https://github.com/fschwett/morse-trainer#preview). The only exception is a collection of MP3 files for the block features audio output.
+The website is built with HTML/CSS and JS. It uses the bootstrap framework for styling. The application is built on the idea of portability and low maintenance. That's why I used simple HTML/CSS instead of processed solutions like SCSS, EJS or anything similar. Also I use embedded CSS and inline JS instead of external files for the same reason, even though it's not as clean as external files. This way one file works as a standalone application and can be used on any device and provided by any server, even the [github html preview](https://github.com/fschwett/morse-trainer#preview).
 
 The application is build around the `setTimeout()` function, that is called on each signal flank. It's callback (`handleTimeout`) essentially creates a self sustaining loop and that handles the Morse signal and creation of new blocks as well as the logic after each block (depending on the mode).
 
@@ -46,11 +46,18 @@ The most important variables are `run` which stores the current state of the app
 
 The run status is handled by the `runButtonClick()` function. It checks the current status and if the app is running, it clears the current timeout, calls `stopSound()`, sets `run` to false and resets all the elements. If it's not running, it starts the application. As mentioned before `handleTimeout()` creates a loop that also generates a new block and thus `runButtonClick()` just sets all the parameters as if a block finished and then call `handleTimeout()` which starts the app and reduces code.
 
-### Timeout handling:
+### Logic and timeouts:
 
-`timeoutHandler()` checks some settings and manipulates the document accordingly first. Then it determines the duration of the next timeout and decides whether to start or stop the sound. Therefore it uses the 
+`timeoutHandler()` handles most of the logic. It checks some settings and manipulates the document accordingly, then it determines the duration of the next timeout and decides whether to start or stop the sound. Other timeout handling functions are `timerHandler()` and `countIn()` which handle the countdowns before revealing the block and before playing the next block.
 
-.........................
+To always play five characters per block, the app uses a zero based counter called `charNumber`. The handlers always set another timeout after running their code. The callback of that timeout depends on the value of `charNumber`.
+
+Continuous mode always call's `timeoutHandler()` and doesn't change the handler, since there aren't different phases.
+
+In block mode, when the counter hits 5 that means the block finished and in block mode `timerHandler()` is the next callback. It will cout down, reveal the block and increase `charNumber` again. This tells the function that the next timer should start and it will count down again. When it finished counting down, it sets another timeout with `timeoutHandler()` as it's callback.
+
+Test mode breaks the loop after reaching the end of a block. When the user enters the answer, it is checked and `countIn()` is called. It works similarly to `timerHandler()`. After counting in, it switches to `timeoutHandler()` for the next callback.
+
 
 ### Sound handling:
 
@@ -75,22 +82,48 @@ if (playMorse) oscillator.start();
 gainNode.gain.setTargetAtTime(1, audioContext.currentTime, 0.002);
 ```
 
-Same goes for stopping the oscillator. The gain is reduced to 0 over the course of 0.003 seconds and additionally a timeout is set which stops the oscillator after 0,01 seconds
+Same goes for stopping the oscillator. The gain is reduced to 0 over the course of 0.003 seconds and additionally a timeout is set which stops the oscillator after 0,01 seconds. Since `stopSound()` might be called without the oscillator running, `oscillator.stop();` might cause an exception. This happens if for example the user clicks the stop button in the pause between two Morse signals. The oscillator won't be running in that moment, but `stopSound()` will still be called. Thus I use a try-catch block.
 
 ```js
 gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.003);
-setTimeout(() => { oscillator.stop(); }, 10);
+setTimeout(() => { try { oscillator.stop(); } catch (e) { } }, 10);
 ```
 
 ## Text to speach feature
 
-The block mode has a feature that lets you hear the correct solution red out. This way the mode can be used auditorily without looking at the screen. The Web Speech API's `SpeechSynthesis` interface could've been used but it didn't work the way I wanted it. When increasing speed, characters started to overlap. That's why I chose to use mp3 files
+The block mode has a feature that lets you hear the correct solution red out. This way the mode can be used auditorily without looking at the screen. The Web Speech API's `SpeechSynthesis` interface could've been used but it didn't work the way I wanted it. When increasing speed, characters started to overlap. That's why I chose to create an MP3 file for each character. I create five `Audio` objects from each MP3 file, because just using one per character led to problems when playing the same character twice without pause. 
 
-> [!NOTE]
-> Convert MP3 files to base64 and hardcode audios map
+To keep my one-file-to-rule-them-all paradigm I wanted a way to embed the MP3 files directly into the website. The first version just used a folder with MP3 files that were loaded into a `Map` object after turning on the feature. The current version uses a `Map` too but instead of mapping each character to an audio file, they are now mapped to the base64 encoded files, which I hardcoded into the html file. They are stored in a seperate `<script>` tag for better organization. 
 
-> [!IMPORTANT]
-> User interaction might be needed to allow audios to be played 
+The reason I didn't just hardcode the five maps is because most browsers only allow you to play audio after a user interaction. I wrote a function mapping the character to the base64 encoded file and then pushing it into the `audios` array:
+
+```html
+<script>
+    let audios = [];
+
+    let createAudios = () => {
+        let map = new Map([
+            ["a", new Audio("data:audio/mpeg;base64,//NkxAAas ...")],
+            ["b", new Audio("data:audio/mpeg;base64,//NkxAAZk ...")],
+            ["c", new Audio("data:audio/mpeg;base64,//NkxAAa0 ...")]
+        ]);
+        
+        audios.push(map);
+    };
+</script>
+```
+
+This function is then called five times by `playSolutionSwitched()` after user interaction. I added a guard clause since I only wanted five copies of the files:
+
+```js
+let playSolutionSwitched = () => {
+    if (audios.length > 0) return;
+
+    for (let i = 0; i < 5; i++) {
+        createAudios();
+    }
+}
+```
 
 ## Preview:
 
